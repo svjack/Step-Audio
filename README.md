@@ -1,3 +1,52 @@
+```python
+from datasets import load_dataset
+from gradio_client import Client, handle_file
+from shutil import copy2
+import os
+
+# Initialize client
+client = Client("http://localhost:7860")
+
+# Load dataset
+ds = load_dataset("svjack/Origin")
+output_folder = "Origin_StepAudio_Spoiled_CuteBoy_Spoken_Dataset"  # Change this to your desired output folder
+
+# Create output directory if it doesn't exist
+os.makedirs(output_folder, exist_ok=True)
+
+# Process each prompt in order
+for i, item in enumerate(ds["train"]):
+    prompt = item["prompt"]
+    result = client.predict(
+		text=prompt,
+		wav_file=handle_file('maylikexiang_boy_vocals.wav'),
+		speaker_prompt="",
+		emotion="撒娇1",
+		language="中文",
+		speed="慢速1",
+		api_name="/tts_clone"
+)
+    
+    # Generate sequential filenames with leading zeros
+    base_filename = f"{i:04d}"  # 4 digits with leading zeros, e.g., "0001"
+    audio_filename = f"{base_filename}.wav"
+    text_filename = f"{base_filename}.txt"
+    
+    # Copy audio file to output folder
+    audio_src_path = result
+    audio_dest_path = os.path.join(output_folder, audio_filename)
+    copy2(audio_src_path, audio_dest_path)
+    
+    # Save prompt to text file
+    text_dest_path = os.path.join(output_folder, text_filename)
+    with open(text_dest_path, "w", encoding="utf-8") as f:
+        f.write(prompt)
+    
+    print(f"Processed item {i}: {audio_filename} and {text_filename} created")
+
+print("Processing complete!")
+```
+
 <p align="left">
         <a href="README_CN.md">中文</a> &nbsp｜ &nbsp English&nbsp&nbsp ｜ &nbsp<a href="README_JP.md">日本語</a>
 </p>
